@@ -6,7 +6,7 @@ import time
 from groq import Groq
 
 # Define API key directly
-GROQ_API_KEY = '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'
+GROQ_API_KEY = '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'
 
 # Initialize Groq client
 client = Groq(api_key=GROQ_API_KEY)
