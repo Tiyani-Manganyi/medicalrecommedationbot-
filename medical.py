@@ -304,7 +304,7 @@ if st.session_state.logged_in:
     # 7. CHAT INTERFACE
     # -------------------------------------------------------------------
     st.title("🩺 Medical Assistant")
-    st.caption("Ask any medical question (diseases, causes, drugs, recommendations).")
+    st.caption("Ask any medical question. For non-medical questions, I'll politely let you know I can't answer them.")
 
     # Clear chat button
     col1, col2 = st.columns([6, 1])
@@ -325,11 +325,13 @@ if st.session_state.logged_in:
         with st.chat_message("user"):
             st.markdown(question)
 
-        # Prepare system prompt
+        # Prepare system prompt - instructs assistant to refuse non-medical questions
         system_prompt = (
-            "You are a medical assistant. You can only answer questions related to diseases, their causes, "
-            "drugs, treatments, and general medical recommendations. If a question is not medical, "
-            "politely decline and ask for a medical question."
+            "You are a medical assistant. You can ONLY answer questions related to diseases, their causes, "
+            "drugs, treatments, symptoms, and general medical recommendations. "
+            "If the user asks anything that is NOT medical (e.g., sports, weather, programming, history, politics, etc.), "
+            "you must politely decline and state that you can only answer medical questions. "
+            "Do not attempt to answer non-medical queries."
         )
 
         # Call Groq API
@@ -352,23 +354,19 @@ if st.session_state.logged_in:
                     response_time = time.time() - start_time
                     answer = chat_completion.choices[0].message.content
 
-                    # Validate that the answer is medical (optional extra safety)
-                    medical_keywords = ['disease', 'cause', 'drug', 'recommendation', 'treatment', 'symptom', 'medication', 'health', 'doctor', 'infection', 'virus', 'bacteria']
-                    if any(keyword in answer.lower() for keyword in medical_keywords):
-                        st.markdown(answer)
-                        st.caption(f"⏱️ Response time: {response_time:.2f} seconds")
-                        # Append assistant response to chat history
-                        st.session_state.chat_history.append({"role": "assistant", "content": answer})
+                    # Display the answer (no keyword filtering)
+                    st.markdown(answer)
+                    st.caption(f"⏱️ Response time: {response_time:.2f} seconds")
+                    
+                    # Append assistant response to chat history
+                    st.session_state.chat_history.append({"role": "assistant", "content": answer})
 
-                        # Provide bookmark button for this response
-                        col_bookmark, _ = st.columns([1, 5])
-                        with col_bookmark:
-                            if st.button("🔖 Bookmark this response", key=f"bookmark_{len(st.session_state.chat_history)}"):
-                                st.session_state.bookmarked_messages.append((question, answer))
-                                st.success("Message bookmarked!")
-                    else:
-                        st.warning("The assistant's response does not seem medical. Please rephrase your question.")
-                        # Optionally, do not add to chat history
+                    # Provide bookmark button for this response
+                    col_bookmark, _ = st.columns([1, 5])
+                    with col_bookmark:
+                        if st.button("🔖 Bookmark this response", key=f"bookmark_{len(st.session_state.chat_history)}"):
+                            st.session_state.bookmarked_messages.append((question, answer))
+                            st.success("Message bookmarked!")
 
                 except Exception as e:
                     st.error(f"An error occurred while contacting the AI service: {str(e)}")
@@ -385,7 +383,7 @@ else:
         **Features:**
         - Secure user authentication
         - Personalized profile management
-        - AI-powered answers to medical questions
+        - AI-powered answers to medical questions (and polite refusal for non-medical questions)
         - Bookmark important answers
         - Full chat history
     """)
