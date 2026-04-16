@@ -3,16 +3,16 @@ import os
 import hashlib
 import csv
 import time
-from groq import Groq
+from openai import OpenAI
 
 # -------------------------------------------------------------------
 # 1. CONFIGURATION & INITIALIZATION
 # -------------------------------------------------------------------
 
-# Hardcoded Groq API key (as requested)
-GROQ_API_KEY = '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'
+# Hardcoded OpenAI API key (replace with your actual key)
+OPENAI_API_KEY = 'sk-your-openai-api-key-here'
 
-client = Groq(api_key=GROQ_API_KEY)
+client = OpenAI(api_key=OPENAI_API_KEY)
 USERS_FILE = 'users.csv'
 
 # -------------------------------------------------------------------
@@ -334,27 +334,29 @@ if st.session_state.logged_in:
             "Do not attempt to answer non-medical queries."
         )
 
-        # Call Groq API
+        # Call OpenAI API
         with st.chat_message("assistant"):
             with st.spinner("Thinking..."):
                 try:
                     start_time = time.time()
+                    # Convert chat history to OpenAI format (list of dicts with role and content)
+                    messages = [{"role": "system", "content": system_prompt}]
+                    for msg in st.session_state.chat_history:
+                        messages.append({"role": msg["role"], "content": msg["content"]})
+                    
                     chat_completion = client.chat.completions.create(
-                        messages=[
-                            {"role": "system", "content": system_prompt},
-                            *st.session_state.chat_history
-                        ],
-                        model="llama3-8b-8192",
+                        model="gpt-3.5-turbo",  # or "gpt-4" if you have access
+                        messages=messages,
                         temperature=0.5,
                         max_tokens=1024,
                         top_p=1,
-                        stop=None,
-                        stream=False,
+                        frequency_penalty=0,
+                        presence_penalty=0,
                     )
                     response_time = time.time() - start_time
                     answer = chat_completion.choices[0].message.content
 
-                    # Display the answer (no keyword filtering)
+                    # Display the answer
                     st.markdown(answer)
                     st.caption(f"⏱️ Response time: {response_time:.2f} seconds")
                     
@@ -369,7 +371,7 @@ if st.session_state.logged_in:
                             st.success("Message bookmarked!")
 
                 except Exception as e:
-                    st.error(f"An error occurred while contacting the AI service: {str(e)}")
+                    st.error(f"An error occurred while contacting the OpenAI service: {str(e)}")
 
 else:
     # Not logged in: welcome screen
