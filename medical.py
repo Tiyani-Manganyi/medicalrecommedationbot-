@@ -10,7 +10,7 @@ from openai import OpenAI
 # -------------------------------------------------------------------
 
 # Hardcoded OpenAI API key (replace with your actual key)
-OPENAI_API_KEY = 'sk-your-openai-api-key-here'
+OPENAI_API_KEY = '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'
 
 client = OpenAI(api_key=OPENAI_API_KEY)
 USERS_FILE = 'users.csv'
