@@ -9,21 +9,105 @@ from groq import Groq
 # 1. CONFIGURATION & INITIALIZATION
 # -------------------------------------------------------------------
 
-# Load API key from environment variables or Streamlit secrets
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
-if GROQ_API_KEY is None:
-    # Fallback for local .env or Streamlit secrets
-    try:
-        GROQ_API_KEY = st.secrets["GROQ_API_KEY"]
-    except:
-        st.error("Groq API key not found. Please set the GROQ_API_KEY environment variable or add it to secrets.toml.")
-        st.stop()
+# Hardcoded Groq API key (as requested)
+GROQ_API_KEY = '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'
 
 client = Groq(api_key=GROQ_API_KEY)
 USERS_FILE = 'users.csv'
 
 # -------------------------------------------------------------------
-# 2. HELPER FUNCTIONS (AUTHENTICATION & USER MANAGEMENT)
+# 2. CUSTOM CSS STYLING
+# -------------------------------------------------------------------
+
+st.markdown("""
+<style>
+    /* Main background and text */
+    .stApp {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+    }
+    
+    /* Chat message containers */
+    .stChatMessage {
+        border-radius: 15px;
+        padding: 10px;
+        margin-bottom: 10px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+    
+    /* User message styling */
+    [data-testid="stChatMessage"]:has(div[data-testid="stMarkdown"]:contains("user")) {
+        background-color: #dcf8c6;
+        border-top-right-radius: 5px;
+    }
+    
+    /* Assistant message styling */
+    [data-testid="stChatMessage"]:has(div[data-testid="stMarkdown"]:contains("assistant")) {
+        background-color: #ffffff;
+        border-top-left-radius: 5px;
+        border-left: 4px solid #2c7da0;
+    }
+    
+    /* Sidebar styling */
+    section[data-testid="stSidebar"] {
+        background-color: #2c3e50;
+        color: white;
+    }
+    
+    section[data-testid="stSidebar"] .stMarkdown, 
+    section[data-testid="stSidebar"] .stTextInput label,
+    section[data-testid="stSidebar"] .stButton button {
+        color: white;
+    }
+    
+    /* Buttons */
+    .stButton button {
+        background-color: #2c7da0;
+        color: white;
+        border-radius: 20px;
+        transition: 0.3s;
+        border: none;
+        padding: 0.5rem 1rem;
+    }
+    .stButton button:hover {
+        background-color: #1f5e7a;
+        transform: scale(1.02);
+    }
+    
+    /* Expander headers */
+    .streamlit-expanderHeader {
+        background-color: #34495e;
+        color: white;
+        border-radius: 10px;
+    }
+    
+    /* Chat input */
+    .stChatInput input {
+        border-radius: 25px;
+        border: 1px solid #2c7da0;
+        padding: 10px 15px;
+    }
+    
+    /* Titles */
+    h1, h2, h3 {
+        color: #2c3e50;
+        font-family: 'Segoe UI', sans-serif;
+    }
+    
+    /* Caption */
+    .stCaption {
+        color: #7f8c8d;
+        font-style: italic;
+    }
+    
+    /* Success/Warning/Error boxes */
+    .stAlert {
+        border-radius: 10px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# -------------------------------------------------------------------
+# 3. HELPER FUNCTIONS (AUTHENTICATION & USER MANAGEMENT)
 # -------------------------------------------------------------------
 
 def hash_password(password):
@@ -105,10 +189,10 @@ def update_user_info(username, new_name, new_surname, new_email, new_password):
     return updated
 
 # -------------------------------------------------------------------
-# 3. STREAMLIT PAGE CONFIGURATION & SESSION STATE
+# 4. STREAMLIT PAGE CONFIGURATION & SESSION STATE
 # -------------------------------------------------------------------
 
-st.set_page_config(page_title="Medical Assistant", page_icon="🩺")
+st.set_page_config(page_title="Medical Assistant", page_icon="🩺", layout="wide")
 create_users_file()
 
 # Initialize session state variables
@@ -128,7 +212,7 @@ if 'bookmarked_messages' not in st.session_state:
     st.session_state.bookmarked_messages = []
 
 # -------------------------------------------------------------------
-# 4. AUTHENTICATION (LOGIN / REGISTRATION)
+# 5. AUTHENTICATION (LOGIN / REGISTRATION)
 # -------------------------------------------------------------------
 
 if not st.session_state.logged_in:
@@ -160,12 +244,12 @@ if not st.session_state.logged_in:
                 st.session_state.surname = user_info['surname'].capitalize()
                 st.session_state.email = user_info['email']
                 st.success("Logged in successfully.")
-                st.rerun()  # Refresh to show main app
+                st.rerun()
             else:
                 st.error("Invalid username or password.")
 
 # -------------------------------------------------------------------
-# 5. MAIN APPLICATION (LOGGED IN)
+# 6. MAIN APPLICATION (LOGGED IN)
 # -------------------------------------------------------------------
 
 if st.session_state.logged_in:
@@ -217,7 +301,7 @@ if st.session_state.logged_in:
         st.rerun()
 
     # -------------------------------------------------------------------
-    # 6. CHAT INTERFACE
+    # 7. CHAT INTERFACE
     # -------------------------------------------------------------------
     st.title("🩺 Medical Assistant")
     st.caption("Ask any medical question (diseases, causes, drugs, recommendations).")
@@ -293,7 +377,8 @@ else:
     # Not logged in: welcome screen
     st.title("🩺 Welcome to the Medical Assistant")
     st.write("Please log in or register to interact with the AI medical assistant.")
-    st.image("medical.png", use_column_width=True) if os.path.exists("medical.png") else None
+    if os.path.exists("medical.png"):
+        st.image("medical.png", use_column_width=True)
     st.write("""
         **Mission:** Provide users with a secure and personalized experience to access advanced AI-driven assistance for medical inquiries.
         
